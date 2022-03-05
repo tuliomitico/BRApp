@@ -1,35 +1,45 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import {
+  NavigationProp,
+  RouteProp,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import { Button, FlatList, ListRenderItem } from 'react-native';
 
-import api from '@services/api';
 import { Common } from '@interface/brapp';
 import Items from '@components/Items';
+import { RootPublicParamList } from '@routes/public/index.routes';
+import { PublicRoutesConstants } from '@routes/constants.routes';
+import VehicleService from '@services/VehicleService';
+import { useParams } from 'src/hooks/params';
 import { Container } from './styles';
 
 const Year: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<RootPublicParamList>>();
+  const routes =
+    useRoute<RouteProp<RootPublicParamList, PublicRoutesConstants.Year>>();
   const [codigo, setCodigo] = useState('');
   const [data, setData] = useState<Array<Common>>([]);
 
-  const rotas = navigation.getState().routes;
-  const { codigoModelo } = rotas
-    .map(item => item.params)
-    .filter(item => item !== undefined)[1];
-  const { codigo: code, vehicle } = rotas
-    .map(item => item.params)
-    .filter(item => item !== undefined)[0];
+  const { codigoModelo } = routes.params;
+  const { vehicle, codigo: code } = useParams();
 
-  const fetch = async () => {
-    const response = await api.get(
-      `/${vehicle}/marcas/${code}/modelos/${codigoModelo}/anos`,
-    );
-    setData(response.data);
+  const getYearList = async () => {
+    if (code) {
+      const response = await VehicleService.getByYear(
+        codigoModelo,
+        vehicle,
+        code,
+      );
+      setData(response);
+    }
   };
 
   useEffect(() => {
-    fetch();
+    getYearList();
   }, []);
+
   const renderItems: ListRenderItem<Common> = ({ item }) => {
     const borderWidth = item.codigo === codigo ? 1 : 0;
     return (
@@ -52,7 +62,12 @@ const Year: React.FC = () => {
       <Button
         color="#FC570C"
         title="Próximo"
-        onPress={() => navigation.navigate('Details')}
+        onPress={() =>
+          navigation.navigate(PublicRoutesConstants.Details, {
+            codigoModelo,
+            codigoAno: codigo,
+          })
+        }
       />
     </Container>
   );

@@ -7,12 +7,22 @@ import {
   ListRenderItem,
   Button,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {
+  NavigationProp,
+  useIsFocused,
+  useNavigation,
+} from '@react-navigation/native';
 
-import api from '@services/api';
 import Items from '@components/Items';
 import Vehicles from '@components/Vehicles';
-import { VehicleType } from '@interface/brapp';
+import { Common, VehicleType } from '@interface/brapp';
+import VehicleService from '@services/VehicleService';
+import { useParams } from '@hooks/params';
+import { PublicRoutesConstants } from '@routes/constants.routes';
+import { RootPublicParamList } from '@routes/public/index.routes';
+import { capitalizeFirstLetter } from '@helpers/String';
+import { Header } from '@styles/Header';
+import TextLink from '@components/TextLink';
 import { Container, Tip } from './styles';
 
 type Brand = {
@@ -27,14 +37,39 @@ const VEHICLES: VehicleType[] = [
 ];
 
 const Brand = (): React.ReactElement => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<RootPublicParamList>>();
+  const focus = useIsFocused();
 
-  const [data, setData] = useState<Brand[]>([]);
+  const [data, setData] = useState<Common[]>([]);
   const [vehicle, setVehicle] = useState('carros');
-  const [newData, setNewData] = useState<Brand[]>([]);
+  const [newData, setNewData] = useState<Common[]>([]);
   const [selected, setSelected] = useState<number | null>(null);
   const [codigo, setCodigo] = useState<string | null>(null);
+  const [brand, setBrand] = useState('');
   const [page, setPage] = useState(0);
+  const { defineVehicle, defineCode } = useParams();
+
+  const handleSubmit = () => {
+    defineVehicle(vehicle);
+    defineCode(codigo || '');
+    navigation.navigate(PublicRoutesConstants.Model, {
+      vehicle,
+      codigo,
+      brand,
+    });
+  };
+
+  const handleToggleVehicle = ({ vehicle: veiculo, id }: VehicleType): void => {
+    setSelected(id);
+    setVehicle(veiculo === 'Caminhões' ? 'caminhoes' : veiculo.toLowerCase());
+    setPage(0);
+    setNewData([]);
+  };
+
+  const handleSelectBrand = (id: string, marca: string) => {
+    setCodigo(id);
+    setBrand(marca);
+  };
 
   const loadMore = (page2: number) => {
     const newRecords = [];
@@ -44,26 +79,24 @@ const Brand = (): React.ReactElement => {
     setNewData([...newData, ...newRecords]);
   };
 
-  const fetch = async () => {
-    const response = await api.get(`/${vehicle}/marcas`);
-    setData(response.data);
+  const getBrandList = async () => {
+    const response = await VehicleService.getByBrand(vehicle);
+    setData(response);
     setPage(0);
     loadMore(0);
   };
 
   useEffect(() => {
-    fetch();
-  }, [setNewData, vehicle, setSelected]);
+    getBrandList();
+  }, [vehicle, focus]);
 
-  const renderItems: ListRenderItem<Brand> = ({ item }) => {
+  const renderItems: ListRenderItem<Common> = ({ item }) => {
     const borderWidth = item.codigo === codigo ? 1 : 0;
     return (
       <Items
         item={item}
         borderWidth={borderWidth}
-        onPress={() => {
-          setCodigo(item.codigo);
-        }}
+        onPress={() => handleSelectBrand(item.codigo, item.nome)}
       />
     );
   };
@@ -74,18 +107,16 @@ const Brand = (): React.ReactElement => {
       <Vehicles
         item={item}
         borderWidth={borderWidth as number}
-        onPress={() => {
-          setSelected(item.id);
-          setVehicle(
-            item.vehicle === 'Caminhões'
-              ? 'caminhoes'
-              : item.vehicle.toLowerCase(),
-          );
-          setNewData([]);
-        }}
+        onPress={() =>
+          handleToggleVehicle({
+            vehicle: item.vehicle,
+            id: item.id,
+          })
+        }
       />
     );
   };
+
   const onScrollHandler = () => {
     setPage(previousState => previousState + 1);
     loadMore(page);
@@ -93,6 +124,11 @@ const Brand = (): React.ReactElement => {
 
   return (
     <Container>
+      <Header>
+        Veículos
+        {' > '}
+        {capitalizeFirstLetter(vehicle)}
+      </Header>
       <Tip>Selecione o tipo de veículo:</Tip>
       <FlatList
         horizontal
@@ -100,6 +136,9 @@ const Brand = (): React.ReactElement => {
         keyExtractor={(_, index) => index.toString()}
         renderItem={renderVehicles}
         showsHorizontalScrollIndicator={false}
+        style={{
+          height: 60,
+        }}
       />
       <Tip>Selecione a marca do veículo</Tip>
       <View>
@@ -113,19 +152,28 @@ const Brand = (): React.ReactElement => {
             paddingBottom: 100,
             justifyContent: 'center',
           }}
-          onEndReachedThreshold={0}
         />
       </View>
-      <TouchableOpacity onPress={onScrollHandler}>
-        <Text style={{ color: '#FC570C', textDecorationLine: 'underline' }}>
-          Ver mais
-        </Text>
-      </TouchableOpacity>
-      <Button
-        title="Próximo"
-        color="#FC570C"
-        onPress={() => navigation.navigate('Model', { codigo, vehicle })}
-      />
+      <TextLink onPress={onScrollHandler} />
+      <View style={{ justifyContent: 'space-around', flexDirection: 'row' }}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Text
+            style={{
+              color: '#FC570C',
+              textDecorationLine: 'underline',
+              fontWeight: 'bold',
+            }}
+          >
+            Voltar
+          </Text>
+        </TouchableOpacity>
+        <Button
+          title="Próximo"
+          color="#FC570C"
+          onPress={handleSubmit}
+          disabled={codigo === null}
+        />
+      </View>
     </Container>
   );
 };

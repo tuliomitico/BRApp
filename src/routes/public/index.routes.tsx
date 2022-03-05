@@ -7,12 +7,23 @@ import Year from '@screens/Year';
 import Details from '@screens/Details';
 import { PublicRoutesConstants } from '../constants.routes';
 
-type RootPublicParamList = {
+export type RootPublicParamList = {
   [PublicRoutesConstants.Home]: undefined;
-  [PublicRoutesConstants.Brand]: undefined;
-  [PublicRoutesConstants.Model]: undefined;
-  [PublicRoutesConstants.Year]: undefined;
-  [PublicRoutesConstants.Details]: undefined;
+  [PublicRoutesConstants.Brand]: {
+    vehicle: string;
+    codigo: string | null;
+    brand: string;
+  };
+  [PublicRoutesConstants.Model]: {
+    vehicle: string;
+    codigo: string | null;
+    brand: string;
+  };
+  [PublicRoutesConstants.Year]: Partial<{
+    codigoModelo: string;
+    codigoAno: string;
+  }>;
+  [PublicRoutesConstants.Details]: { codigoModelo: string; codigoAno: string };
 };
 
 const Stack = createStackNavigator<RootPublicParamList>();
@@ -25,7 +36,11 @@ const Public = (): React.ReactElement => {
         component={Home}
         options={{ headerShown: false }}
       />
-      <Stack.Screen name={PublicRoutesConstants.Brand} component={Brand} />
+      <Stack.Screen
+        name={PublicRoutesConstants.Brand}
+        component={Brand}
+        options={{ headerShown: false }}
+      />
       <Stack.Screen name={PublicRoutesConstants.Model} component={Model} />
       <Stack.Screen name={PublicRoutesConstants.Year} component={Year} />
       <Stack.Screen name={PublicRoutesConstants.Details} component={Details} />

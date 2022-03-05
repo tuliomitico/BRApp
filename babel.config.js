@@ -15,6 +15,8 @@ module.exports = function (api) {
             '@components': './src/components',
             '@styles': './src/styles',
             '@interface': './src/interface',
+            '@hooks': './src/hooks',
+            '@helpers': './src/helpers',
           },
         },
       ],

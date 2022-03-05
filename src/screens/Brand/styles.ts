@@ -1,8 +1,9 @@
 import styled from 'styled-components/native';
 
 export const Container = styled.View`
-  padding: 0 16px;
+  padding: 64px 16px 64px 16px;
   background-color: #e5e5e5;
+  height: 100%;
 `;
 
 export const Wrapper = styled.View`
