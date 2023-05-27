@@ -1,8 +1,9 @@
 import React from 'react';
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import { useNavigation } from '@react-navigation/native';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
 
 import { PublicRoutesConstants } from '@routes/constants.routes';
+import { RootPublicParamList } from '@routes/public/index.routes';
 import {
   ButtonContainer,
   ButtonTitle,
@@ -15,7 +16,12 @@ import {
 import { CarIcon } from '../../styles/CarIcon';
 
 const Home: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<RootPublicParamList>>();
+
+  const handleSubmit = () => {
+    navigation.navigate(PublicRoutesConstants.Brand);
+  };
+
   return (
     <Container>
       <Title>Olá</Title>
@@ -27,9 +33,7 @@ const Home: React.FC = () => {
         </Description>
       </Wrapper>
       <ButtonContainer>
-        <TouchableOpacity
-          onPress={() => navigation.navigate(PublicRoutesConstants.Brand)}
-        >
+        <TouchableOpacity onPress={handleSubmit}>
           <CarIcon size={150} />
           <ButtonTitle>Veiculos</ButtonTitle>
         </TouchableOpacity>

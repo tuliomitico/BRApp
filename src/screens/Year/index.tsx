@@ -5,25 +5,46 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import { Button, FlatList, ListRenderItem } from 'react-native';
+import { FlatList, ListRenderItem } from 'react-native';
 
 import { Common } from '@interface/brapp';
 import Items from '@components/Items';
+import Button from '@components/Button';
 import { RootPublicParamList } from '@routes/public/index.routes';
 import { PublicRoutesConstants } from '@routes/constants.routes';
 import VehicleService from '@services/VehicleService';
 import { useParams } from 'src/hooks/params';
-import { Container } from './styles';
+import { Header } from '@styles/Header';
+import { Wrapper } from '@styles/Wrapper';
+import { capitalizeFirstLetter } from '@helpers/String';
+import TextButton from '@components/TextButton';
+import { Container, Tip } from './styles';
 
 const Year: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootPublicParamList>>();
   const routes =
     useRoute<RouteProp<RootPublicParamList, PublicRoutesConstants.Year>>();
   const [codigo, setCodigo] = useState('');
+  const [year, setYear] = useState('');
   const [data, setData] = useState<Array<Common>>([]);
 
-  const { codigoModelo } = routes.params;
+  const { codigoModelo, brand, modelo } = routes.params;
   const { vehicle, codigo: code } = useParams();
+
+  const handleSelectedYear = (id: string, ano: string) => {
+    setCodigo(id);
+    setYear(ano);
+  };
+
+  const handleSubmit = () => {
+    navigation.navigate(PublicRoutesConstants.Details, {
+      codigoModelo,
+      codigoAno: codigo,
+      brand,
+      modelo,
+      year,
+    });
+  };
 
   const getYearList = async () => {
     if (code) {
@@ -45,13 +66,23 @@ const Year: React.FC = () => {
     return (
       <Items
         item={item}
-        onPress={() => setCodigo(item.codigo)}
+        onPress={() => handleSelectedYear(item.codigo, item.nome)}
         borderWidth={borderWidth}
       />
     );
   };
   return (
     <Container>
+      <Header>
+        Veículo
+        {' > '}
+        {capitalizeFirstLetter(vehicle)}
+        {' > '}
+        {capitalizeFirstLetter(brand || '')}
+        {' > '}
+        {capitalizeFirstLetter(modelo || '')}
+      </Header>
+      <Tip>Selecione o ano do veículo</Tip>
       <FlatList
         style={{ height: 300 }}
         numColumns={2}
@@ -59,16 +90,10 @@ const Year: React.FC = () => {
         keyExtractor={item => item.codigo}
         renderItem={renderItems}
       />
-      <Button
-        color="#FC570C"
-        title="Próximo"
-        onPress={() =>
-          navigation.navigate(PublicRoutesConstants.Details, {
-            codigoModelo,
-            codigoAno: codigo,
-          })
-        }
-      />
+      <Wrapper>
+        <TextButton text="Voltar" onPress={() => navigation.goBack()} />
+        <Button text="Próximo" onPress={handleSubmit} />
+      </Wrapper>
     </Container>
   );
 };

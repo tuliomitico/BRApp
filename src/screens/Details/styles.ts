@@ -2,7 +2,8 @@ import styled from 'styled-components/native';
 
 export const Container = styled.View`
   background-color: #e5e5e5;
-  padding: 0 16px;
+  padding: 64px 16px 34px;
+  height: 100%;
 `;
 
 export const PriceWrapper = styled.View`
@@ -10,6 +11,12 @@ export const PriceWrapper = styled.View`
   justify-content: space-between;
   align-items: center;
   margin: 10px 0;
+`;
+
+export const Wrapper = styled.View`
+  justify-content: center;
+  align-items: center;
+  margin-top: 76px;
 `;
 
 export const LeftText = styled.Text`
